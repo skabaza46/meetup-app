@@ -1,17 +1,16 @@
 import MeetupDetail from "../../components/meetups/MeetupDetail";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 
 const urlDb = "mongodb+srv://skabaza46:IYKdFRflUesKaY9h@cluster0.xf2g1pw.mongodb.net/meetups?retryWrites=true&w=majority";
 
 const MeetupDetails = (props) => {
 
-    const data = JSON.parse(props.meetupData)
     return (
         <MeetupDetail 
-                image={data.image}
-                title={data.title}
-                address={data.address}
-                description={data.description}
+                image={props.meetupData.image}
+                title={props.meetupData.title}
+                address={props.meetupData.address}
+                description={props.meetupData.description}
             />
     );
 };
@@ -50,13 +49,19 @@ export const getStaticProps = async (context) => {
     const meetupCollection = db.collection('meetups');
 
     // Gets only the data with the collection _id specified
-    const meetup =  await meetupCollection.findOne({}, {_id: meetupId});
+    const meetup =  await meetupCollection.findOne({}, {_id: ObjectId(meetupId)});
     client.close();
     
 
     return {
         props: {
-            meetupData:JSON.stringify(meetup)
+            meetupData: {
+                id: meetup._id.toString(),
+                title: meetup.title,
+                description: meetup.description,
+                image: meetup.image,
+                address: meetup.address
+            }
         }
     }
 }
