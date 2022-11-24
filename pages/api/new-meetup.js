@@ -5,12 +5,14 @@ import { MongoClient } from 'mongodb';
 // api/new-meetup
 // POST /api/new-meetup 
 
+const urlDb = "mongodb+srv://skabaza46:IYKdFRflUesKaY9h@cluster0.xf2g1pw.mongodb.net/meetups?retryWrites=true&w=majority";
+
 const handler  = async (req, res) => {
 
     if (req.method === "POST"){
         const data = req.body;
 
-        const client = await MongoClient.connect('mongodb+srv://skabaza46:#i1ImBAM12!T@cluster0.hpwxse6.mongodb.net/meetups?retryWrites=true&w=majority');
+        const client = await MongoClient.connect(urlDb);
 
         const db = client.db();
 
@@ -24,8 +26,10 @@ const handler  = async (req, res) => {
 
         res.status(201).json({message: "Meetup inserted!"});
 
+
     }
 };
 
 
 export default handler;
+
