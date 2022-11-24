@@ -1,61 +1,66 @@
 import MeetupDetail from "../../components/meetups/MeetupDetail";
+import { MongoClient } from "mongodb";
 
-// import { useRouter } from "next/router";
+const urlDb = "mongodb+srv://skabaza46:IYKdFRflUesKaY9h@cluster0.xf2g1pw.mongodb.net/meetups?retryWrites=true&w=majority";
 
 const MeetupDetails = (props) => {
 
-    // const history = useRouter();
-
-    // const meedupId = history.query.meedupId;
-    // console.log(meedupId);
-
+    const data = JSON.parse(props.meetupData)
     return (
-    <MeetupDetail 
-        image={props.meetupData.image}
-        title={props.meetupData.title}
-        address={props.meetupData.address}
-        description={props.meetupData.description}
-    />
+        <MeetupDetail 
+                image={data.image}
+                title={data.title}
+                address={data.address}
+                description={data.description}
+            />
     );
 };
 
 
 export const getStaticPaths = async () =>{
 
+    const client = await MongoClient.connect(urlDb);
+    const db = client.db();
+
+    const meetupCollection = db.collection('meetups');
+    
+    // Gets all data within the collection
+    const meetups = await meetupCollection.find({}, {_id:1}).toArray();
+
+    client.close();
+
     return {
         fallback: false,
-        paths: [
-            {
-                params: {
-                     meedupId: 'm1'
-            } 
-        },
-        {
-            params: {
-                 meedupId: 'm2'
-        } 
-    }
-     ],
+        paths: meetups.map(meetup => ({
+            params: { meetupId: meetup._id.toString()}
+         })),
     }
 };
 
 
-export const getStaticProps = async(context) => {
-    const meetupId = context.params.meedupId;
-    console.log(meetupId);
+export const getStaticProps = async (context) => {
+
+    console.log(context)
+    const { params } = context;
+    const meetupId = params.meetupId;
+    
+    const client = await MongoClient.connect(urlDb);
+    const db = client.db();
+
+    const meetupCollection = db.collection('meetups');
+
+    // Gets only the data with the collection _id specified
+    const meetup =  await meetupCollection.findOne({}, {_id: meetupId});
+    client.close();
+    
 
     return {
         props: {
-            meetupData: {
-                id: meetupId,
-                image:"https://a.cdn-hotels.com/gdcs/production139/d1349/5824d77a-2c97-4ddb-8999-2a4705e0e434.jpg?impolicy=fcrop&w=800&h=533&q=medium",
-                title:"A First Meetup !",
-                address:"1234 23rd ave n, Clearwater FL 33703",
-                description:"This is a first meetup",
-            }
+            meetupData:JSON.stringify(meetup)
         }
     }
 }
 
 
 export default MeetupDetails;
+
